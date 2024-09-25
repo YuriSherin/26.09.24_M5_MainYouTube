@@ -12,101 +12,95 @@ class UrTube:
         return self.title == res
 
     def __str__(self):
-        return self.current_user.nickname
+        return f"{self.videos}"
 
 
-    def  log_in(self, nickname, password):
+    def  log_in(self, login, password):
         """Метод log_in, который принимает на вход аргументы: nickname, password
         и пытается найти пользователя в users с такими же логином и паролем.
         Если такой пользователь существует, то current_user меняется на найденного.
         Помните, что password передаётся в виде строки, а сравнивается по хэшу."""
-        pass
+        for user in self.users:
+            if login == user.nickname and password == user.password:
+                self.current_user = user
 
     def register(self, nickname, password, age):
         """Метод register, который принимает три аргумента: nickname, password, age,
         и добавляет пользователя в список, если пользователя не существует (с таким же nickname).
         Если существует, выводит на экран: "Пользователь {nickname} уже существует".
         После регистрации, вход выполняется автоматически."""
-        if self.find_user_nickname(nickname):
-            print(f'Пользователь {nickname} уже существует')
-            return
-        user = User(nickname, password, age)
-        self.users.append(user)
-        self.current_user = user
+        for user in self.users:
+            if nickname in user.nickname:
+                print(f"Пользователь {nickname} уже существует")
+                return
+
+        new_user = User (nickname,password,age)
+        self.users.append(new_user)
+        self.current_user = new_user
+        print(f'Пользователь {nickname} зарегистрирован и вошел в систему')
 
     def log_out(self):
         """Метод log_out для сброса текущего пользователя на None"""
-        pass
+        self.current_user = None
 
     def add(self, *args):
         """Метод add, который принимает неограниченное кол-во объектов класса Video
         и все добавляет в videos, если с таким же названием видео ещё не существует.
         В противном случае ничего не происходит."""
-        for v in args:
-            if self.find_video_title(v):
-                continue
-            self.videos.append(v)
+        for movie in args:
+            self.videos.append(movie)
 
 
-    def find_video_title(self, vd):
-        """Метод ищет в списке объектов Videos видео, название которого совпадает
-        с именем аргумента. Если такой объект находится, возвращается True,
-        в противном случае возвращается False"""
-        res = False
-        for v in self.videos:
-            if v.title != vd.title:
-                continue
-            else:
-                res = True
-                break
-        return res
+    # def find_video_title(self, vd):
+    #     """Метод ищет в списке объектов Videos видео, название которого совпадает
+    #     с именем аргумента. Если такой объект находится, возвращается True,
+    #     в противном случае возвращается False"""
+    #     res = False
+    #     for v in self.videos:
+    #         if v.title != vd.title:
+    #             continue
+    #         else:
+    #             res = True
+    #             break
+    #     return res
 
-    def find_user_nickname(self, nickname):
-        """Метод ищет в списке пользователей ползователя с nickname.
-        Если находит, возвращает True, иначе Falsse"""
-        res = False
-        for nn in self.users:
-            if nn.nickname.lower() == nickname.lower():
-                res = True
-                break
-        return res
+    # def find_user_nickname(self, nickname):
+    #     """Метод ищет в списке пользователей ползователя с nickname.
+    #     Если находит, возвращает True, иначе Falsse"""
+    #     res = False
+    #     for nn in self.users:
+    #         if nn.nickname.lower() == nickname.lower():
+    #             res = True
+    #             break
+    #     return res
 
-    def get_videos(self, word):
+    def get_videos(self, text):
         """Метод get_videos, который принимает поисковое слово и возвращает список названий
         всех видео, содержащих поисковое слово. Следует учесть, что слово 'UrbaN'
         присутствует в строке 'Urban the best' (не учитывать регистр)."""
-        lst_video = []
+        list_movie = []
         for video in self.videos:
-            if word.lower() in video.title.lower():
-                lst_video.append(video.title)
-        return lst_video
+            if text.upper() in video.title.upper():
+                list_movie.append(video.title)
+        return list_movie
 
-    def watch_video(self, video_title):
+    def watch_video(self, movie):
         """Метод watch_video, который принимает название фильма, если не находит
         точного совпадения(вплоть до пробела), то ничего не воспроизводится,
         если же находит - ведётся отчёт в консоль на какой секунде ведётся просмотр.
         После текущее время просмотра данного видео сбрасывается."""
-        if self.current_user == None:
-            print('Войдите в аккаунт, чтобы смотреть видео')
-            return
-        if self.current_user.age < 18:
+        if self.current_user and self.current_user.age < 18:
             print('Вам нет 18 лет, пожалуйста покиньте страницу')
-            self.current_user = None
-            return
-        current_video = None
-        for vd in self.videos:
-            if vd.title == video_title:
-                current_video = vd
-                break
-        while current_video.time_now < current_video.duration:
-            if current_video.time_now < current_video.duration - 1:
-                print(current_video.time_now, end=' ')
-            else:
-                print(current_video.time_now)
-            # time.sleep(1)
-            current_video.time_now += 1
+        elif self.current_user:
+            for video in self.videos:
+                if movie in video.title:
+                    for i in range(1, 11):
+                        print(i, end=' ')
+                        time.sleep(1)
+                    print('Конец видео')
 
-        current_video.time_now = 0
+        else:
+            print('Войдите в аккаунт, чтобы смотреть видео')
 
 
 
@@ -118,13 +112,25 @@ class Video:
         self.time_now  = 0              # секунда остановки, изначально = 0
         self.adult_mode = False         # ограничение по возрасту, изначально = False
 
+
+    def __str__(self):
+        return f"{self.title}"
+
+
 class User:
     def __init__(self, nickname, password, age):
         self.nickname = nickname        # имя пользователя, строка
         self.password = password        # пароль в хешированном виде, число
         self.age = age                  # возраст, число
 
+    def __str__(self):
+        return f'{self.nickname}'
 
+    def __eq__(self, other):
+        return self.nickname == other.nickname
+
+    def __hash__(self):
+        return hash(self.password)
 
 
 
@@ -156,7 +162,6 @@ if __name__ == '__main__':
     ur.register('vasya_pupkin', 'F8098FM8fjm9jmi', 55)
     a = ur.current_user
     print(ur.current_user)
-    # print(ur)
     # # Попытка воспроизведения несуществующего видео
     ur.watch_video('Лучший язык программирования 2024 года!')
 
