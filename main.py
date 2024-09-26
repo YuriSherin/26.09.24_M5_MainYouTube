@@ -5,6 +5,12 @@ class UrTube:
         self.videos = []                # список объектов Video
         self.current_user = None        # текущий пользователь
 
+    def __eq__(self, other):
+        if not isinstance(other, (str, Video)):
+            raise TypeError("Операнд должен иметь тип 'str' или 'Video'")
+        res = other if isinstance(other, str) else other.title
+        return self.title == res
+
     def __str__(self):
         """Метод для функций print, format возвращает строку,
         содержащую названия всех video из списка videos"""
@@ -21,9 +27,9 @@ class UrTube:
         Если такой пользователь существует, то current_user меняется на найденного.
         Помните, что password передаётся в виде строки, а сравнивается по хэшу."""
         for user in self.users:
-            # if login == user.nickname and password == user.password:
-            if login == user and password == user.password:
-                self.current_user = user
+            if login == user.nickname and hash(password) == user.password:
+                    self.current_user = user
+                    break
 
     def register(self, nickname, password, age):
         """Метод register, который принимает три аргумента: nickname, password, age,
@@ -75,7 +81,7 @@ class UrTube:
         elif self.current_user:
             for video in self.videos:
                 if movie in video.title:
-                    for i in range(11):
+                    while video.time_now <= video.duration:
                         print(video.time_now, end=' ')
                         video.time_now += 1
                         time.sleep(1)
@@ -113,7 +119,7 @@ class User:
         if not isinstance(other, (str, User)):
             raise TypeError("Операнд должен иметь тип 'str' или 'User'")
         res = other if isinstance(other, str) else other.nickname
-        return self.age == res
+        return self.nickname == res
 
 
     def __lt__(self, other):
@@ -149,6 +155,7 @@ if __name__ == '__main__':
 
     # Попытка воспроизведения несуществующего видео
     ur.watch_video('Лучший язык программирования 2024 года!')
+
 
 
 # Вывод в консоль:
