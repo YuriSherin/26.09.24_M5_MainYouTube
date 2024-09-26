@@ -5,14 +5,14 @@ class UrTube:
         self.videos = []                # список объектов Video
         self.current_user = None        # текущий пользователь
 
-    def __eq__(self, other):
-        if not isinstance(other, (str, Video)):
-            raise TypeError("Операнд должен иметь тип 'str' или 'Video'")
-        res = other if isinstance(other, str) else other.title
-        return self.title == res
-
     def __str__(self):
-        return f"{self.videos}"
+        """Метод для функций print, format возвращает строку,
+        содержащую названия всех video из списка videos"""
+        name_video = ""
+        for video in self.videos:
+            name_video += video.title + '\n'
+        name_video = name_video[ : len(name_video) - 1]
+        return name_video
 
 
     def  log_in(self, login, password):
@@ -21,7 +21,8 @@ class UrTube:
         Если такой пользователь существует, то current_user меняется на найденного.
         Помните, что password передаётся в виде строки, а сравнивается по хэшу."""
         for user in self.users:
-            if login == user.nickname and password == user.password:
+            # if login == user.nickname and password == user.password:
+            if login == user and password == user.password:
                 self.current_user = user
 
     def register(self, nickname, password, age):
@@ -30,14 +31,14 @@ class UrTube:
         Если существует, выводит на экран: "Пользователь {nickname} уже существует".
         После регистрации, вход выполняется автоматически."""
         for user in self.users:
-            if nickname in user.nickname:
+            if user == nickname:
                 print(f"Пользователь {nickname} уже существует")
                 return
 
         new_user = User (nickname,password,age)
         self.users.append(new_user)
         self.current_user = new_user
-        print(f'Пользователь {nickname} зарегистрирован и вошел в систему')
+        # print(f'Пользователь {nickname} зарегистрирован и вошел в систему')
 
     def log_out(self):
         """Метод log_out для сброса текущего пользователя на None"""
@@ -48,31 +49,11 @@ class UrTube:
         и все добавляет в videos, если с таким же названием видео ещё не существует.
         В противном случае ничего не происходит."""
         for movie in args:
-            self.videos.append(movie)
+            if movie in self.videos:
+                continue
+            else:
+                self.videos.append(movie)
 
-
-    # def find_video_title(self, vd):
-    #     """Метод ищет в списке объектов Videos видео, название которого совпадает
-    #     с именем аргумента. Если такой объект находится, возвращается True,
-    #     в противном случае возвращается False"""
-    #     res = False
-    #     for v in self.videos:
-    #         if v.title != vd.title:
-    #             continue
-    #         else:
-    #             res = True
-    #             break
-    #     return res
-
-    # def find_user_nickname(self, nickname):
-    #     """Метод ищет в списке пользователей ползователя с nickname.
-    #     Если находит, возвращает True, иначе Falsse"""
-    #     res = False
-    #     for nn in self.users:
-    #         if nn.nickname.lower() == nickname.lower():
-    #             res = True
-    #             break
-    #     return res
 
     def get_videos(self, text):
         """Метод get_videos, который принимает поисковое слово и возвращает список названий
@@ -80,7 +61,7 @@ class UrTube:
         присутствует в строке 'Urban the best' (не учитывать регистр)."""
         list_movie = []
         for video in self.videos:
-            if text.upper() in video.title.upper():
+            if text.lower() in video.title.lower():
                 list_movie.append(video.title)
         return list_movie
 
@@ -89,20 +70,19 @@ class UrTube:
         точного совпадения(вплоть до пробела), то ничего не воспроизводится,
         если же находит - ведётся отчёт в консоль на какой секунде ведётся просмотр.
         После текущее время просмотра данного видео сбрасывается."""
-        if self.current_user and self.current_user.age < 18:
+        if self.current_user and self.current_user < 18:
             print('Вам нет 18 лет, пожалуйста покиньте страницу')
         elif self.current_user:
             for video in self.videos:
                 if movie in video.title:
-                    for i in range(1, 11):
-                        print(i, end=' ')
+                    for i in range(11):
+                        print(video.time_now, end=' ')
+                        video.time_now += 1
                         time.sleep(1)
                     print('Конец видео')
-
+                    video.time_now = 0
         else:
             print('Войдите в аккаунт, чтобы смотреть видео')
-
-
 
 
 class Video:
@@ -114,31 +94,36 @@ class Video:
 
 
     def __str__(self):
-        return f"{self.title}"
+        return self.title
+
+    def __eq__(self, other):
+        return self.title == other.title
 
 
 class User:
     def __init__(self, nickname, password, age):
         self.nickname = nickname        # имя пользователя, строка
-        self.password = password        # пароль в хешированном виде, число
+        self.password = hash(password)  # пароль в хешированном виде, число
         self.age = age                  # возраст, число
 
     def __str__(self):
-        return f'{self.nickname}'
+        return self.nickname
 
     def __eq__(self, other):
-        return self.nickname == other.nickname
-
-    def __hash__(self):
-        return hash(self.password)
-
-
+        if not isinstance(other, (str, User)):
+            raise TypeError("Операнд должен иметь тип 'str' или 'User'")
+        res = other if isinstance(other, str) else other.nickname
+        return self.age == res
 
 
-
+    def __lt__(self, other):
+        if not isinstance(other, (int, User)):
+            raise TypeError("Операнд должен иметь тип 'int' или 'User'")
+        res = other if isinstance(other, int) else other.age
+        return self.age < res
 
 if __name__ == '__main__':
-    pass
+
     # Код для проверки:
     ur = UrTube()
     v1 = Video('Лучший язык программирования 2024 года', 200)
@@ -146,23 +131,23 @@ if __name__ == '__main__':
 
     # Добавление видео
     ur.add(v1, v2)
-    #
-    # # Проверка поиска
+
+    # Проверка поиска
     print(ur.get_videos('лучший'))
     print(ur.get_videos('ПРОГ'))
-    #
-    # # Проверка на вход пользователя и возрастное ограничение
+
+    # Проверка на вход пользователя и возрастное ограничение
     ur.watch_video('Для чего девушкам парень программист?')
     ur.register('vasya_pupkin', 'lolkekcheburek', 13)
     ur.watch_video('Для чего девушкам парень программист?')
     ur.register('urban_pythonist', 'iScX4vIJClb9YQavjAgF', 25)
     ur.watch_video('Для чего девушкам парень программист?')
-    #
-    # # Проверка входа в другой аккаунт
+
+    # Проверка входа в другой аккаунт
     ur.register('vasya_pupkin', 'F8098FM8fjm9jmi', 55)
-    a = ur.current_user
     print(ur.current_user)
-    # # Попытка воспроизведения несуществующего видео
+
+    # Попытка воспроизведения несуществующего видео
     ur.watch_video('Лучший язык программирования 2024 года!')
 
 
